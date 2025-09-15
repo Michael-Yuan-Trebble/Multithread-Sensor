@@ -1,21 +1,31 @@
-﻿# CMakeList.txt : CMake project for Multithreaded Sim, include source and define
-# project specific logic here.
-#
-cmake_minimum_required (VERSION 3.8)
-
-# Enable Hot Reload for MSVC compilers if supported.
-if (POLICY CMP0141)
-  cmake_policy(SET CMP0141 NEW)
-  set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "$<IF:$<AND:$<C_COMPILER_ID:MSVC>,$<CXX_COMPILER_ID:MSVC>>,$<$<CONFIG:Debug,RelWithDebInfo>:EditAndContinue>,$<$<CONFIG:Debug,RelWithDebInfo>:ProgramDatabase>>")
-endif()
+﻿cmake_minimum_required (VERSION 3.8)
 
 project ("Multithreaded Sim")
 
-# Add source to this project's executable.
+# C++ 17 Standard
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+set(CMAKE_CXX_CLANG_TIDY
+    "clang-tidy;-checks=*;-header-filter=.*;-line-filter=[{\"name\": \".*Test.cpp\"}]")
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+# Main Executable
 add_executable (CMakeTarget "Multithreaded Sim.cpp" "Multithreaded Sim.h")
 
-if (CMAKE_VERSION VERSION_GREATER 3.12)
-  set_property(TARGET CMakeTarget PROPERTY CXX_STANDARD 17)
-endif()
+# GoogleTest Setup
+include(FetchContent)
+FetchContent_Declare(
+  googletest
+  URL https://github.com/google/googletest/archive/5376968f6948923e2411081fd9372e71a59d8e77.zip
+)
 
-# TODO: Add tests and install targets if needed.
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(googletest)
+
+# Enable CTest
+enable_testing()
+
+# Testing Subdirectory
+add_subdirectory(test)
