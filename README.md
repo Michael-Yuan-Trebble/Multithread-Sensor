@@ -22,7 +22,7 @@ There is also an additional Python application written in PyQt5 and using matplo
 - C++ 17
 - CMake 3.8
 - Python 3
-- PyQt5
+  - PyQt5
   - matplotlib
   - numpy
   - pandas
