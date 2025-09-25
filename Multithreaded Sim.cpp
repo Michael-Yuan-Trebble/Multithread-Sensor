@@ -15,6 +15,13 @@ struct SensorReading {
 	Location loc;
 };
 
+inline unsigned SeedGenerator()
+{
+	static std::random_device rd;
+	auto tid = std::hash<std::thread::id>{}(std::this_thread::get_id());
+	return rd() ^ static_cast<unsigned>(tid);
+}
+
 // Thread Object for Combination to know what to replace
 class ThreadQueue 
 {
@@ -62,16 +69,29 @@ static Location GetScatter(Location trueLoc, SensorType Type, std::mutex& m)
 		sensorString = "Radar";
 		NOISE_RANDOM = 20; break;
 	}
-	thread_local static std::mt19937 gen(std::random_device{}());
-	std::normal_distribution<> noise(0, NOISE_RANDOM);
-	Location noiseLocation = Location({ trueLoc.x + noise(gen), trueLoc.y + noise(gen), trueLoc.z + noise(gen) });
+	thread_local static std::mt19937 gen(SeedGenerator());
+
+	std::normal_distribution<> noise(0.0, NOISE_RANDOM);
+
+	Location noiseLocation{
+		trueLoc.x + noise(gen),
+		trueLoc.y + noise(gen),
+		trueLoc.z + noise(gen)
+	};
+
 	{
 		std::lock_guard<std::mutex> lock(m);
 		auto now = std::chrono::steady_clock::now();
 		auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(now - programStart).count();
-		myFile << elapsed << "," << sensorString << "," << noiseLocation.x << "," << noiseLocation.y << "," << noiseLocation.z << std::endl;
+
+		myFile << elapsed << "," << sensorString << ","
+			<< noiseLocation.x << "," << noiseLocation.y << "," << noiseLocation.z << std::endl;
+
+		std::cout << sensorString << ": "
+			<< noiseLocation.x << "," << noiseLocation.y << "," << noiseLocation.z
+			<< std::endl;
 	}
-	return { noiseLocation };
+	return noiseLocation;
 }
 
 // Creates a thread with varying time intervals
