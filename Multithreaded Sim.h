@@ -10,3 +10,6 @@
 #include <condition_variable>
 #include <fstream>
 #include <string>
+#include <qfile.h>
+#include <qjsondocument.h>
+#include <qjsonobject.h>

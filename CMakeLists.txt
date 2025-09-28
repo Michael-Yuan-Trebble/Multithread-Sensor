@@ -14,6 +14,9 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # Main Executable
 add_executable (CMakeTarget "Multithreaded Sim.cpp" "Multithreaded Sim.h")
 
+find_package(Qt6 REQUIRED COMPONENTS Core)
+target_link_libraries(CMakeTarget PRIVATE Qt6::Core)
+
 # GoogleTest Setup
 #include(FetchContent)
 #FetchContent_Declare(

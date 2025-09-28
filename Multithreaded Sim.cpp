@@ -86,10 +86,6 @@ static Location GetScatter(Location trueLoc, SensorType Type, std::mutex& m)
 
 		myFile << elapsed << "," << sensorString << ","
 			<< noiseLocation.x << "," << noiseLocation.y << "," << noiseLocation.z << std::endl;
-
-		std::cout << sensorString << ": "
-			<< noiseLocation.x << "," << noiseLocation.y << "," << noiseLocation.z
-			<< std::endl;
 	}
 	return noiseLocation;
 }
@@ -174,11 +170,33 @@ static void CreateThreads(Location InLoc)
 int main()
 {
 	programStart = std::chrono::steady_clock::now();
-	myFile.open("data.csv", std::ios::out | std::ios::app);
+	myFile.open("data.csv", std::ios::out | std::ios::trunc);
 
 	myFile << "time,sensor type,x,y,z" << std::endl;
 	
-	Location InLoc = Location({ 1,1,1 });
+	QFile file("./Location.json");
+	if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) 
+	{
+		qWarning() << "Could not open file!";
+		return -1;
+	}
+
+	QByteArray fileData = file.readAll();
+	file.close();
+
+	QJsonDocument doc = QJsonDocument::fromJson(fileData);
+	if (!doc.isObject())
+	{
+		qWarning() << "Expected a JSON object!";
+		return -1;
+	}
+
+	QJsonObject obj = doc.object();
+	double x = obj["x"].toDouble();
+	double y = obj["y"].toDouble();
+	double z = obj["z"].toDouble();
+
+	Location InLoc = Location({x,y,z});
 	CreateThreads(InLoc);
 	std::cin.get();
 	std::cout << "Exiting Program...";
