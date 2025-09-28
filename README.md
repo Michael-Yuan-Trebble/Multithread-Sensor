@@ -1,6 +1,6 @@
 # Multithread-Sensor
 
-## A Multithreaded Sensor Reader in C++ using CMake
+## A Multithreaded Sensor Reader in C++ and Python
 
 I built this project to teach myself multithreading in C++ and exporting CSV files in C++. My goals for this project are to gain experience in:
 - Implementing threads and handling them safely
@@ -15,14 +15,19 @@ The sensors are as follows:
 - Radar
 - IMU
 All sensor readings, including the combined of all three, are written into a CSV.
+There is also an additional Python application written in PyQt5 and using matplotlib to visualize the data and plot it in a 3d space.
 
 ## Tech Stack
 
 - C++ 17
 - CMake 3.8
+- Python 3
+  - PyQt5
+  - matplotlib
+  - numpy
+  - pandas
 
 ## Future Plans
 
-In the future I plan to add a Python program that takes in the CSV data and plots it onto a graph via Mathplotlib.
 For the C++ program itself, I also plan to refine the variability and sensor timings to create a more realistic set of data.
 I also plan to be able to let the user input a location instead of hardcoding it
