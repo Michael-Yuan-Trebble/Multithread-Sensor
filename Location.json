@@ -1,5 +1,11 @@
 {
     "x": 100,
     "y": 100,
-    "z":  100
+    "z": 100,
+    "GPS_Noise": 10,
+    "IMU_Noise": 15,
+    "Radar_Noise": 20,
+    "GPS_Interval": 5,
+    "IMU_Interval": 10,
+    "Radar_Interval": 15
 }

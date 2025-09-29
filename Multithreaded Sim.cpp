@@ -61,13 +61,13 @@ static Location GetScatter(Location trueLoc, SensorType Type, std::mutex& m)
 	{
 	case GPS:
 		sensorString = "GPS";
-		NOISE_RANDOM = 10; break;
+		NOISE_RANDOM = GPS_Noise; break;
 	case IMU:
 		sensorString = "IMU";
-		NOISE_RANDOM = 15; break;
+		NOISE_RANDOM = IMU_Interval; break;
 	case Radar:
 		sensorString = "Radar";
-		NOISE_RANDOM = 20; break;
+		NOISE_RANDOM = Radar_Interval; break;
 	}
 	thread_local static std::mt19937 gen(SeedGenerator());
 
@@ -97,11 +97,11 @@ static void TypeThread(Location trueLoc, SensorType type, std::mutex& m)
 	switch (type)
 	{
 	case GPS:
-		timeInterval = 5; break;
+		timeInterval = GPS_Interval; break;
 	case IMU:
-		timeInterval = 10; break;
+		timeInterval = IMU_Interval; break;
 	case Radar:
-		timeInterval = 15; break;
+		timeInterval = Radar_Interval; break;
 	}
 
 	while(true) 
@@ -195,6 +195,12 @@ int main()
 	double x = obj["x"].toDouble();
 	double y = obj["y"].toDouble();
 	double z = obj["z"].toDouble();
+	GPS_Noise = obj["GPS_Noise"].toDouble();
+	IMU_Noise = obj["IMU_Noise"].toDouble();
+	Radar_Noise = obj["Radar_Noise"].toDouble();
+	GPS_Interval = obj["GPS_Interval"].toDouble();
+	IMU_Interval = obj["IMU_Interval"].toDouble();
+	Radar_Interval = obj["Radar_Interval"].toDouble();
 
 	Location InLoc = Location({x,y,z});
 	CreateThreads(InLoc);
