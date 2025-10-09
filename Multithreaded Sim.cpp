@@ -15,7 +15,50 @@ struct SensorReading {
 	Location loc;
 };
 
-inline unsigned SeedGenerator()
+// Basic one dimensional KalmanFilter
+class KalmanFilter 
+{
+	double estimatedPos;
+	double estimatedUncert;
+	double coefficient;
+	double processNoise;
+	double measurementNoise;
+	bool isInit = false;
+
+public:
+	KalmanFilter(double inProcessNoise, double inMeasurementNoise)
+		: coefficient(1.0), processNoise(inProcessNoise), measurementNoise(inMeasurementNoise), estimatedUncert(1.0), estimatedPos(0.0) {}
+
+	void init(double initValue) 
+	{
+		estimatedPos = initValue;
+		isInit = true;
+	}
+
+	double update(double inMeasurement)
+	{
+		if (!isInit) 
+		{
+			estimatedPos = inMeasurement;
+			isInit = true;
+		}
+
+		estimatedPos = coefficient * coefficient * estimatedUncert + processNoise;
+
+		double gain = (estimatedUncert) / (estimatedUncert + measurementNoise);
+
+		estimatedPos += gain * (inMeasurement - estimatedPos);
+
+		estimatedUncert = (1 - gain) * estimatedUncert;
+
+		return estimatedPos;
+	}
+
+	double getValue() const { return estimatedPos; }
+};
+
+// The randomization seed for each thread
+unsigned static SeedGenerator()
 {
 	static std::random_device rd;
 	auto tid = std::hash<std::thread::id>{}(std::this_thread::get_id());
@@ -124,6 +167,11 @@ std::optional<Location> LatestIMU;
 // Combine all of the different sensors into one location
 static void Combine(std::mutex& m) 
 {
+
+	KalmanFilter kfX(0.1, 2.0);
+	KalmanFilter kfY(0.1, 2.0);
+	KalmanFilter kfZ(0.1, 2.0);
+
 	while (true) 
 	{
 		SensorReading Reading = GlobalQueue.pop();
@@ -136,18 +184,24 @@ static void Combine(std::mutex& m)
 			case SensorType::IMU:
 				LatestIMU = Reading.loc; break;
 			}
-			if (LatestGPS && LatestRadar && LatestIMU) 
+			if (LatestGPS && LatestRadar && LatestIMU)
 			{
-				Location Combined = Location({
-					(LatestGPS->x + LatestRadar->x + LatestIMU->x) / 3.0,
-					(LatestGPS->y + LatestRadar->y + LatestIMU->y) / 3.0,
-					(LatestGPS->z + LatestRadar->z + LatestIMU->z) / 3.0
-										});
+				double measuredX = (LatestGPS->x + LatestRadar->x + LatestIMU->x) / 3.0;
+				double measuredY = (LatestGPS->y + LatestRadar->y + LatestIMU->y) / 3.0;
+				double measuredZ = (LatestGPS->z + LatestRadar->z + LatestIMU->z) / 3.0;
+
+				double filteredX = kfX.update(measuredX);
+				double filteredY = kfY.update(measuredY);
+				double filteredZ = kfZ.update(measuredZ);
+
+				Location Combined{ filteredX, filteredY, filteredZ };
+
 				{
 					std::lock_guard<std::mutex> lock(m);
 					auto now = std::chrono::steady_clock::now();
 					auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(now - programStart).count();
-					myFile << elapsed << "," << "Combined" << "," << Combined.x << "," << Combined.y << "," << Combined.z << std::endl;
+					myFile << elapsed << "," << "Filtered" << ","
+						<< Combined.x << "," << Combined.y << "," << Combined.z << std::endl;
 				}
 			}
 	}
