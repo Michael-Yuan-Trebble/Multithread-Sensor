@@ -23,6 +23,8 @@ When the sensor readings are combined, they are then written into a .csv for use
 
 The Python program included reads in the .csv and plots it into a 3D graph and can plot all 4 types of readings, GPS, Radar, IMU, and Combined.
 
+![Python Plot Image](Pictures/Plot.png)
+
 ## Tech Stack
 
 - C++ 17
